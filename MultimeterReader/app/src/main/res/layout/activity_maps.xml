@@ -24,4 +24,15 @@
         android:paddingRight="10dp"
         android:onClick="toggleTraffic"/>
 
+    <Button
+        android:id="@+id/BluetoothConnectButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:text="Connect"
+        android:padding="10dp"
+        android:layout_marginBottom="40dp"
+        android:paddingRight="10dp"
+        android:onClick="createBluetoothConnection"/>
+
 </fragment>

@@ -1,11 +1,16 @@
 package jlarison.multimeterreader;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,18 +26,23 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
+import java.util.UUID;
 
 public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener{
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    public Handler handler;
+    public Handler mapHandler;
+    public Handler bluetoothHandler;
     private LocationRequest mLocationRequest;
     private LocationListener mLocationListener;
+    private String currentReading;
 
 
     @Override
@@ -74,9 +84,17 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         buildGoogleApiClient();
+        currentReading = null;
+
+        bluetoothHandler = new Handler() {
+            @Override
+            public void handleMessage(android.os.Message msg) {
+                currentReading = msg.obj.toString();
+            }
+        };
 
 
-        handler = new Handler(){
+        mapHandler = new Handler(){
             @Override
             public void handleMessage(android.os.Message message){
                 try {
@@ -158,9 +176,12 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
     private void placeMarker(double lat, double longi) {
-        DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        Date dateobj = new Date();
-        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(df.format(dateobj)).snippet(new LatLng(lat, longi).toString()));
+        //DateFormat df = new SimpleDateFormat("HH:mm:ss");
+        //Date dateobj = new Date();
+        if(currentReading != null) {
+            String temperature = translateReading(currentReading);
+            mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString()));
+        }
     }
 
     public void joshlarison(View view) {
@@ -174,6 +195,59 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             mMap.setTrafficEnabled(true);
         }
     }
+
+    public void createBluetoothConnection(View view) {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        BluetoothDevice multimeter = null;
+        for(BluetoothDevice device : pairedDevices) {
+            if(device.getName().equals("TP9605")) {
+                multimeter = device;
+            }
+        }
+
+        if(multimeter == null) {
+            displayConnectionErrorToast();
+            return;
+        }
+
+        mBluetoothAdapter.getRemoteDevice(multimeter.getAddress());
+        BluetoothSocket multimeterSocket = null;
+        try {
+            multimeterSocket = multimeter.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+            multimeterSocket.connect();
+        } catch (IOException e) {
+            displayConnectionErrorToast();
+            return;
+        }
+
+
+        //TextView text = (TextView)findViewById(R.id.textView);
+        //text.setText("Connected: " + Boolean.toString(multimeterSocket.isConnected()));
+        displayConnectionSuccessToast();
+
+        Reader reader = new Reader(multimeterSocket,getApplicationContext(),this);
+        reader.start();
+    }
+
+    private void displayConnectionErrorToast() {
+        Toast toast = Toast.makeText(this.getApplicationContext(), "Could not connect to Bluetooth Device", Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    private void displayConnectionSuccessToast() {
+        Toast toast = Toast.makeText(this.getApplicationContext(), "Connected to device TP9605!", Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    private String translateReading(String reading) {
+        String translated = reading.substring(1,3);
+        translated += ".";
+        translated += reading.charAt(3);
+        translated += " degress";
+        return translated;
+    }
+
 }
 
 class loc extends Thread{
@@ -198,7 +272,7 @@ class loc extends Thread{
             //mlLastLocation.getLongitude();
             Message m = new Message();
             m.obj = mlLastLocation;
-            MA.handler.sendMessage(m);
+            MA.mapHandler.sendMessage(m);
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {

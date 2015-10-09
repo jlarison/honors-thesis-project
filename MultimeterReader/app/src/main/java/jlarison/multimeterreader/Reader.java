@@ -23,11 +23,11 @@ public class Reader extends Thread{
     LocationManager mLocationManager;
     Context context;
     InputStream inStream;
-    MainActivity main;
+    MapsActivity main;
 
     final String bluetoothTag = "MultimeterBluetooth";
 
-    public Reader(BluetoothSocket socket, Context context, MainActivity main) {
+    public Reader(BluetoothSocket socket, Context context, MapsActivity main) {
 
         this.socket = socket;
         this.context = context;
@@ -59,12 +59,13 @@ public class Reader extends Thread{
                 stream.read(inBuffer);
                 if (res == PackageManager.PERMISSION_GRANTED) {
                     Location lastKnownLocation = mLocationManager.getLastKnownLocation(locationProvider);
-                    String reading = " Reading: " + Arrays.toString(inBuffer) + "\n" + "Location: " + lastKnownLocation.getLatitude() + lastKnownLocation.getLongitude();
-                    Log.i("data", reading );
-                    Log.i("dataString", new String(inBuffer) );
+                    //String reading = " Reading: " + Arrays.toString(inBuffer) + "\n" + "Location: " + lastKnownLocation.getLatitude() + lastKnownLocation.getLongitude();
+                    //Log.i("data", reading );
+                    String reading = new String(inBuffer);
+                    Log.i("dataString", reading );
                     Message msg = new Message();
                     msg.obj = reading;
-                    main.handler.sendMessage(msg);
+                    main.bluetoothHandler.sendMessage(msg);
                 }
 
                 //Log.i("data",Integer.toString(stream.read()));

@@ -92,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
         TextView text = (TextView)findViewById(R.id.textView);
         text.setText("Connected: " + Boolean.toString(multimeterSocket.isConnected()));
 
-        Reader reader = new Reader(multimeterSocket,getApplicationContext(),this);
-        reader.start();
+        //Reader reader = new Reader(multimeterSocket,getApplicationContext(),this);
+        //reader.start();
     }
 
     private void displayConnectionErrorToast() {
