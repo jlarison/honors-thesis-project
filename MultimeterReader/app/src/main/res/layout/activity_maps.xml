@@ -1,0 +1,38 @@
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:id="@+id/map" tools:context=".MapsActivity"
+    android:name="com.google.android.gms.maps.SupportMapFragment">
+
+    <Button
+        android:id="@+id/ClearButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|bottom"
+        android:text="Clear"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:paddingRight="10dp"
+        android:onClick="joshlarison"/>
+    <Button
+        android:id="@+id/TrafficButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|bottom"
+        android:text="Traffic"
+        android:padding="10dp"
+        android:layout_marginBottom="40dp"
+        android:paddingRight="10dp"
+        android:onClick="toggleTraffic"/>
+
+    <Button
+        android:id="@+id/BluetoothConnectButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:text="Connect"
+        android:padding="10dp"
+        android:layout_marginBottom="40dp"
+        android:paddingRight="10dp"
+        android:onClick="createBluetoothConnection"/>
+
+</fragment>
