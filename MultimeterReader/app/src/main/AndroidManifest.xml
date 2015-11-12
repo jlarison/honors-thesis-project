@@ -22,7 +22,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="jlarison.multimeterreader.MainActivity"
             android:label="@string/app_name" >
 
         </activity>

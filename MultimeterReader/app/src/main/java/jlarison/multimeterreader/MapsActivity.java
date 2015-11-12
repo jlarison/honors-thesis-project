@@ -25,6 +25,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.parse.Parse;
+import com.parse.ParseObject;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -85,6 +87,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         setUpMapIfNeeded();
         buildGoogleApiClient();
         currentReading = null;
+
+        // Enable Local Datastore.
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "1y6Pbr9Xgwc1CMLZ6VaZWmiC4md6smub6GOOcbgg", "YF2wi0NJfq2siq6kx2Cqqvv4qro9rnFovWzvAFxV");
+        ParseObject testObject = new ParseObject("TestObject");
+        testObject.put("barble", "bapkins");
+        testObject.saveInBackground();
 
         bluetoothHandler = new Handler() {
             @Override
