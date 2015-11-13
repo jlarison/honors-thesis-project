@@ -32,6 +32,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.parse.Parse;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 
 import java.io.IOException;
@@ -211,9 +212,10 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
                 testObject.put("userId", userId);
             }
             else testObject.put("userId", "");
+
+            ParseGeoPoint point = new ParseGeoPoint(lat, longi);
             testObject.put("time", getLocalTimeDate());
-            testObject.put("lat", lat);
-            testObject.put("longi", longi);
+            testObject.put("geo_point", point);
             testObject.put("temp", temperature);
             testObject.saveInBackground();
         }
