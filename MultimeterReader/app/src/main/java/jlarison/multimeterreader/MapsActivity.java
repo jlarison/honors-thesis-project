@@ -225,7 +225,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         }
     }
 
-    private void retrieve()  {
+    public void retrieve(View view)  {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("PollutionReading");
         query.whereEqualTo("userId", userId);
         query.findInBackground(new FindCallback<ParseObject>() {
@@ -233,6 +233,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             public void done(List<ParseObject> objects, com.parse.ParseException e) {
                 if (e == null) {
                     //bring up list of objects
+                    clearMap();
                     for(ParseObject obj : objects) {
                         double lat = obj.getParseGeoPoint("geo_point").getLatitude();
                         double longi = obj.getParseGeoPoint("geo_point").getLongitude();
@@ -248,6 +249,10 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
     public void joshlarison(View view) {
+        mMap.clear();
+    }
+
+    private void clearMap(){
         mMap.clear();
     }
 
