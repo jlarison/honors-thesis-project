@@ -3,15 +3,21 @@ package jlarison.multimeterreader;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -35,7 +41,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener{
+public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener{
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private GoogleApiClient mGoogleApiClient;
@@ -45,6 +51,9 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     private LocationRequest mLocationRequest;
     private LocationListener mLocationListener;
     private String currentReading;
+    private String userId;
+
+    private static final int RC_SIGN_IN = 9001;
 
 
     @Override
@@ -88,6 +97,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         buildGoogleApiClient();
         currentReading = null;
 
+        findViewById(R.id.sign_in_button).setOnClickListener(this);
+
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "1y6Pbr9Xgwc1CMLZ6VaZWmiC4md6smub6GOOcbgg", "YF2wi0NJfq2siq6kx2Cqqvv4qro9rnFovWzvAFxV");
@@ -121,10 +132,15 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
     protected synchronized void buildGoogleApiClient() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
     }
 
@@ -210,6 +226,47 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             mMap.setTrafficEnabled(true);
         }
     }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sign_in_button:
+                onSignInClick(v);
+                break;
+        }
+    }
+
+    public void onSignInClick(View view) {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
+    }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d("signin", "handleSignInResult:" + result.isSuccess());
+        if(result.isSuccess()) {
+            GoogleSignInAccount acct = result.getSignInAccount();
+            Toast toast = Toast.makeText(this.getApplicationContext(), "Successfully signed in to " + acct.getEmail(), Toast.LENGTH_LONG);
+            toast.show();
+            this.userId = acct.getId();
+        }
+        else {
+            Toast toast = Toast.makeText(this.getApplicationContext(), "Login Failed", Toast.LENGTH_LONG);
+            toast.show();
+        }
+    }
+
+
 
     public void createBluetoothConnection(View view) {
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
