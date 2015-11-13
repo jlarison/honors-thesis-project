@@ -51,8 +51,10 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     private LocationRequest mLocationRequest;
     private LocationListener mLocationListener;
     private String currentReading;
+    private String userId;
 
     private static final int RC_SIGN_IN = 9001;
+
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -250,6 +252,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             GoogleSignInAccount acct = result.getSignInAccount();
             Toast toast = Toast.makeText(this.getApplicationContext(), "Successfully signed in to " + acct.getEmail(), Toast.LENGTH_LONG);
             toast.show();
+            this.userId = acct.getId();
         }
         else {
             Toast toast = Toast.makeText(this.getApplicationContext(), "Login Failed", Toast.LENGTH_LONG);
