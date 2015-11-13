@@ -102,9 +102,9 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "1y6Pbr9Xgwc1CMLZ6VaZWmiC4md6smub6GOOcbgg", "YF2wi0NJfq2siq6kx2Cqqvv4qro9rnFovWzvAFxV");
-        ParseObject testObject = new ParseObject("TestObject");
+/*        ParseObject testObject = new ParseObject("TestObject");
         testObject.put("barble", "bapkins");
-        testObject.saveInBackground();
+        testObject.saveInBackground();*/
 
         bluetoothHandler = new Handler() {
             @Override
@@ -205,7 +205,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         //Date dateobj = new Date();
         if(currentReading != null) {
             String temperature = translateReading(currentReading);
-            mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString()));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString() + "\n" + getLocalTimeDate()));
+            ParseObject testObject = new ParseObject("DataTableTest");
+            testObject.put("time", getLocalTimeDate());
+            testObject.put("lat", lat);
+            testObject.put("longi", longi);
+            testObject.put("temp", temperature);
+            testObject.saveInBackground();
         }
     }
 
@@ -307,11 +313,17 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
     private String translateReading(String reading) {
-        String translated = reading.substring(1,3);
+        String translated = reading.substring(1, 3);
         translated += ".";
         translated += reading.charAt(3);
         translated += " degress";
         return translated;
+    }
+
+    private String getLocalTimeDate(){
+        DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+        Date dateobj = new Date();
+        return df.format(dateobj);
     }
 
 }
