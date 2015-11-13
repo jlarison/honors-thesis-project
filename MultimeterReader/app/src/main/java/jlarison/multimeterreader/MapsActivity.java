@@ -31,14 +31,18 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -219,6 +223,28 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             testObject.put("temp", temperature);
             testObject.saveInBackground();
         }
+    }
+
+    private void retrieve()  {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("PollutionReading");
+        query.whereEqualTo("userId", userId);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> objects, com.parse.ParseException e) {
+                if (e == null) {
+                    //bring up list of objects
+                    for(ParseObject obj : objects) {
+                        double lat = obj.getParseGeoPoint("geo_point").getLatitude();
+                        double longi = obj.getParseGeoPoint("geo_point").getLongitude();
+                        String timestamp = obj.getString("time");
+                        String temp = obj.getString("temp");
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temp).snippet(new LatLng(lat, longi).toString() + "\n" + timestamp));
+                    }
+                } else {
+                    //fail
+                }
+            }
+        });
     }
 
     public void joshlarison(View view) {
