@@ -41,7 +41,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener{
+public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener{
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private GoogleApiClient mGoogleApiClient;
@@ -95,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         buildGoogleApiClient();
         currentReading = null;
 
-
+        findViewById(R.id.sign_in_button).setOnClickListener(this);
 
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
@@ -219,6 +219,15 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         }
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sign_in_button:
+                onSignInClick(v);
+                break;
+        }
+    }
+
     public void onSignInClick(View view) {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -237,6 +246,15 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     private void handleSignInResult(GoogleSignInResult result) {
         Log.d("signin", "handleSignInResult:" + result.isSuccess());
+        if(result.isSuccess()) {
+            GoogleSignInAccount acct = result.getSignInAccount();
+            Toast toast = Toast.makeText(this.getApplicationContext(), "Successfully signed in to " + acct.getEmail(), Toast.LENGTH_LONG);
+            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this.getApplicationContext(), "Login Failed", Toast.LENGTH_LONG);
+            toast.show();
+        }
     }
 
 
