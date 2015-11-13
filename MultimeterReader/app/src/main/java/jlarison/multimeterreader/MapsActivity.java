@@ -206,7 +206,11 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         if(currentReading != null) {
             String temperature = translateReading(currentReading);
             mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString() + "\n" + getLocalTimeDate()));
-            ParseObject testObject = new ParseObject("DataTableTest");
+            ParseObject testObject = new ParseObject("PollutionReading");
+            if(userId != null) {
+                testObject.put("userId", userId);
+            }
+            else testObject.put("userId", "");
             testObject.put("time", getLocalTimeDate());
             testObject.put("lat", lat);
             testObject.put("longi", longi);
