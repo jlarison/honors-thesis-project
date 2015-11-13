@@ -189,8 +189,9 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         //Date dateobj = new Date();
         if(currentReading != null) {
             String temperature = translateReading(currentReading);
-            mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString()));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString() + "\n" + getLocalTimeDate()));
             ParseObject testObject = new ParseObject("DataTableTest");
+            testObject.put("time", getLocalTimeDate());
             testObject.put("lat", lat);
             testObject.put("longi", longi);
             testObject.put("temp", temperature);
@@ -255,11 +256,17 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
     private String translateReading(String reading) {
-        String translated = reading.substring(1,3);
+        String translated = reading.substring(1, 3);
         translated += ".";
         translated += reading.charAt(3);
         translated += " degress";
         return translated;
+    }
+
+    private String getLocalTimeDate(){
+        DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+        Date dateobj = new Date();
+        return df.format(dateobj);
     }
 
 }
