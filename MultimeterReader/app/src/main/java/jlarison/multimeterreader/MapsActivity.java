@@ -4,13 +4,17 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,15 +51,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener{
+public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, View.OnClickListener, LocationListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private Location mCurrentLocation;
+    private String mLastUpdateTime;
     public Handler mapHandler;
     public Handler bluetoothHandler;
     private LocationRequest mLocationRequest;
-    private LocationListener mLocationListener;
     private String currentReading;
     private String userId;
 
@@ -64,7 +69,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         //startLocationUpdates();
     }
 
@@ -100,10 +105,22 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        long pollRate = Long.parseLong(sharedPref.getString("poll_rate", "1000"));
+        float minDisp = Float.parseFloat(sharedPref.getString("smallest_disp", "5"));
+        int priorityCode = Integer.parseInt(sharedPref.getString("location_mode", "102"));
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(priorityCode);
+        mLocationRequest.setInterval(pollRate);
+        mLocationRequest.setSmallestDisplacement(minDisp);
         buildGoogleApiClient();
         currentReading = null;
 
         findViewById(R.id.sign_in_button).setOnClickListener(this);
+
+
+
 
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
@@ -115,12 +132,16 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         bluetoothHandler = new Handler() {
             @Override
             public void handleMessage(android.os.Message msg) {
-                currentReading = msg.obj.toString();
+                if(currentReading==null) {
+                    currentReading = msg.obj.toString();
+                    startLocationUpdates();
+                }
+                else currentReading = msg.obj.toString();
             }
         };
 
 
-        mapHandler = new Handler(){
+        /*mapHandler = new Handler(){
             @Override
             public void handleMessage(android.os.Message message){
                 try {
@@ -133,7 +154,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         };
 
         Thread T = new loc(mGoogleApiClient, this);
-        T.start();
+        T.start();*/
 
     }
 
@@ -152,7 +173,59 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     protected void startLocationUpdates() {
         LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, mLocationListener);
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        updateUI();
+    }
+
+    private void updateUI() {
+        //TODO: USE THESE TO PLACE MARKER
+        Log.d("jorsh", "updating UI:" + mCurrentLocation.getLatitude() + " reading: " + currentReading);
+        placeMarker(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        //mLastUpdateTime;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (keyCode == KeyEvent.KEYCODE_MENU && event.getRepeatCount() == 0) {
+            openConfig();
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                                          String key) {
+
+        if (key.equals("poll_rate")) {
+            stopLocationUpdates();
+            long pollRate = Long.parseLong(sharedPreferences.getString("poll_rate", "1000"));
+            mLocationRequest.setInterval(pollRate);
+            startLocationUpdates();
+        }
+        else if (key.equals("smallest_disp")) {
+            stopLocationUpdates();
+            float minDisp = Float.parseFloat(sharedPreferences.getString("smallest_disp", "5"));
+            mLocationRequest.setSmallestDisplacement(minDisp);
+            startLocationUpdates();
+        }
+        else if (key.equals("location_mode")){
+            stopLocationUpdates();
+            int priorityCode = Integer.parseInt(sharedPreferences.getString("location_mode", "102"));
+            mLocationRequest.setPriority(priorityCode);
+            startLocationUpdates();
+        }
     }
 
     @Override
@@ -212,17 +285,16 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         if(currentReading != null) {
             String temperature = translateReading(currentReading);
             mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString() + "\n" + getLocalTimeDate()));
-            ParseObject testObject = new ParseObject("PollutionReading");
-            if(userId != null) {
-                testObject.put("userId", userId);
-            }
-            else testObject.put("userId", "");
 
-            ParseGeoPoint point = new ParseGeoPoint(lat, longi);
-            testObject.put("time", getLocalTimeDate());
-            testObject.put("geo_point", point);
-            testObject.put("temp", temperature);
-            testObject.saveInBackground();
+            if(userId != null) {
+                ParseObject testObject = new ParseObject("PollutionReading");
+                testObject.put("userId", userId);
+                ParseGeoPoint point = new ParseGeoPoint(lat, longi);
+                testObject.put("time", getLocalTimeDate());
+                testObject.put("geo_point", point);
+                testObject.put("temp", temperature);
+                testObject.saveInBackground();
+            }
         }
     }
 
@@ -338,6 +410,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
         Reader reader = new Reader(multimeterSocket,getApplicationContext(),this);
         reader.start();
+
     }
 
     private void displayConnectionErrorToast() {

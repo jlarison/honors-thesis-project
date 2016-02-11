@@ -55,6 +55,7 @@ public class Reader extends Thread{
             int res = context.checkCallingOrSelfPermission(permission);
             //mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             //Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            stream.read(inBuffer);
             while(true) {
                 stream.read(inBuffer);
                 if (res == PackageManager.PERMISSION_GRANTED) {
@@ -62,10 +63,12 @@ public class Reader extends Thread{
                     //String reading = " Reading: " + Arrays.toString(inBuffer) + "\n" + "Location: " + lastKnownLocation.getLatitude() + lastKnownLocation.getLongitude();
                     //Log.i("data", reading );
                     String reading = new String(inBuffer);
-                    Log.i("dataString", reading );
-                    Message msg = new Message();
-                    msg.obj = reading;
-                    main.bluetoothHandler.sendMessage(msg);
+                    if(reading.toString().charAt(0) == '0') {
+                        Log.i("dataString", reading.toString());
+                        Message msg = new Message();
+                        msg.obj = reading;
+                        main.bluetoothHandler.sendMessage(msg);
+                    }
                 }
 
                 //Log.i("data",Integer.toString(stream.read()));
