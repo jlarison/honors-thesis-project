@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="test"
+        android:title="Test"
+        android:summary="This is a test checkbox"
+        android:defaultValue="true" />
+    <jlarison.multimeterreader.EditTextIntegerPreference
+        android:key="poll_rate"
+        android:title="Polling Rate"
+        android:summary="Controls how often the app polls GPS for location data." />
+    <ListPreference
+        android:key="location_mode"
+        android:title="Location Mode"
+        android:dialogTitle="Location Mode"
+        android:entries="@array/location_mode_entries"
+        android:entryValues="@array/location_mode_values"
+        />
+</PreferenceScreen>

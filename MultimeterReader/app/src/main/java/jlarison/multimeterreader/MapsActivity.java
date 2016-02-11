@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceFragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -362,6 +363,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         Date dateobj = new Date();
         return df.format(dateobj);
     }
+
+    public void openConfig() {
+        Intent intent = new Intent(this, ConfigActivity.class);
+        startActivity(intent);
+    }
+
+
 
 }
 
