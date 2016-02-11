@@ -5,8 +5,8 @@ import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
+//import android.location.Location;
+//import android.location.LocationManager;
 import android.os.Message;
 import android.util.Log;
 
@@ -20,7 +20,7 @@ import java.util.Arrays;
 public class Reader extends Thread{
 
     BluetoothSocket socket;
-    LocationManager mLocationManager;
+    //LocationManager mLocationManager;
     Context context;
     InputStream inStream;
     MapsActivity main;
@@ -49,16 +49,16 @@ public class Reader extends Thread{
         byte[] inBuffer = new byte[14];
         try {
             stream = socket.getInputStream();
-            String locationProvider = LocationManager.NETWORK_PROVIDER;
+            //String locationProvider = LocationManager.NETWORK_PROVIDER;
 
             String permission = "android.permission.ACCESS_FINE_LOCATION";
             int res = context.checkCallingOrSelfPermission(permission);
-            mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            //mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            //Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             while(true) {
                 stream.read(inBuffer);
                 if (res == PackageManager.PERMISSION_GRANTED) {
-                    Location lastKnownLocation = mLocationManager.getLastKnownLocation(locationProvider);
+                    //Location lastKnownLocation = mLocationManager.getLastKnownLocation(locationProvider);
                     //String reading = " Reading: " + Arrays.toString(inBuffer) + "\n" + "Location: " + lastKnownLocation.getLatitude() + lastKnownLocation.getLongitude();
                     //Log.i("data", reading );
                     String reading = new String(inBuffer);
