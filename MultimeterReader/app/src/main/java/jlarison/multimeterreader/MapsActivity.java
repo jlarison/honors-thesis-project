@@ -4,8 +4,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.Preference;
@@ -283,6 +285,11 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         //DateFormat df = new SimpleDateFormat("HH:mm:ss");
         //Date dateobj = new Date();
         if(currentReading != null) {
+            Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            float batteryPct = level / (float)scale;
+
             String temperature = translateReading(currentReading);
             mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString() + "\n" + getLocalTimeDate()));
 
@@ -293,6 +300,10 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
                 testObject.put("time", getLocalTimeDate());
                 testObject.put("geo_point", point);
                 testObject.put("temp", temperature);
+                testObject.put("battery", batteryPct);
+                testObject.put("polling", mLocationRequest.getInterval());
+                testObject.put("displacement", mLocationRequest.getSmallestDisplacement());
+                testObject.put("locMode", mLocationRequest.getPriority());
                 testObject.saveInBackground();
             }
         }
