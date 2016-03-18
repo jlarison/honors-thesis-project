@@ -116,6 +116,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         mLocationRequest.setPriority(priorityCode);
         mLocationRequest.setInterval(pollRate);
         mLocationRequest.setSmallestDisplacement(minDisp);
+        mLocationRequest.setFastestInterval(pollRate);
+        mLocationRequest.setMaxWaitTime(pollRate);
         buildGoogleApiClient();
         currentReading = null;
 
