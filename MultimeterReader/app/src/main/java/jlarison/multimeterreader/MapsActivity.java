@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -143,6 +144,9 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
                 else currentReading = msg.obj.toString();
             }
         };
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
 
         /*mapHandler = new Handler(){
