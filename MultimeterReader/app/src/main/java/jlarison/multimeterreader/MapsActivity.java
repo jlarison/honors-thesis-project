@@ -13,6 +13,7 @@ import android.os.Message;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -146,6 +147,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         };
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 127);  //brightness is an integer variable (0-255), but dont use 0
 
 
 
@@ -279,11 +282,11 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
      */
     private void setUpMap() {
         Marker m;
-        mMap.setMyLocationEnabled(true);
+        mMap.setMyLocationEnabled(false);
         //mMap.setTrafficEnabled(true);
         //mMap.setLocationSource();
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(38.8833, -98.3500), 2.9f));
-        m = mMap.addMarker(new MarkerOptions().position(new LatLng(40.552586, -105.077100)).title("Fort Collins").snippet("Intersection of Drake Rd and College Ave"));
+        //m = mMap.addMarker(new MarkerOptions().position(new LatLng(40.552586, -105.077100)).title("Fort Collins").snippet("Intersection of Drake Rd and College Ave"));
         //m.showInfoWindow();
     }
 
@@ -300,7 +303,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             mMap.addMarker(new MarkerOptions().position(new LatLng(lat, longi)).title(temperature).snippet(new LatLng(lat, longi).toString() + "\n" + getLocalTimeDate()));
 
             if(userId != null) {
-                ParseObject testObject = new ParseObject("PollutionReading");
+                ParseObject testObject = new ParseObject("FixedLocation");
                 testObject.put("userId", userId);
                 ParseGeoPoint point = new ParseGeoPoint(lat, longi);
                 testObject.put("time", getLocalTimeDate());
@@ -310,6 +313,11 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
                 testObject.put("polling", mLocationRequest.getInterval());
                 testObject.put("displacement", mLocationRequest.getSmallestDisplacement());
                 testObject.put("locMode", mLocationRequest.getPriority());
+                try {
+                    testObject.put("screenBright", Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS));
+                } catch (Settings.SettingNotFoundException e) {
+                    e.printStackTrace();
+                }
                 testObject.saveInBackground();
             }
         }
